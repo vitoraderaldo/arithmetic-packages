@@ -1,5 +1,5 @@
-export interface EventInterface {
+export interface EventInterface<T> {
     getName(): string;
-    getPayload<T>(): T;
+    getPayload(): T;
     getDateTime(): Date;
 }

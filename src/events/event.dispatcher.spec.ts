@@ -53,7 +53,7 @@ describe('EventDispatcher', () => {
     const eventHandler2 = createMock<EventHandlerInterface>()
     const eventHandler3 = createMock<EventHandlerInterface>()
 
-    const event = createMock<EventInterface>()
+    const event = createMock<EventInterface<any>>()
     event.getName.mockReturnValue(eventName)
 
     dispatcher.register(eventName, eventHandler1)

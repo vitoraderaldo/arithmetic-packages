@@ -15,7 +15,7 @@ export class EventDispatcher implements EventDispatcherInterface {
     this.handlers.set(eventName, [...eventHandlers, eventHandler])
   }
 
-  dispatch(event: EventInterface): void {
+  dispatch(event: EventInterface<any>): void {
     const eventHandlers = this.handlers.get(event.getName()) || []
     eventHandlers.forEach(handler => handler.handle(event))
   }
