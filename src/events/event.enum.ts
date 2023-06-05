@@ -1,0 +1,3 @@
+export enum EventName {
+  OPERATION_CALCULATED = 'OPERATION_CALCULATED',
+}
