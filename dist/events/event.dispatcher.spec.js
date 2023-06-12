@@ -39,8 +39,11 @@ describe('EventDispatcher', () => {
         const eventHandler1 = (0, ts_jest_1.createMock)();
         const eventHandler2 = (0, ts_jest_1.createMock)();
         const eventHandler3 = (0, ts_jest_1.createMock)();
-        const event = (0, ts_jest_1.createMock)();
-        event.getName.mockReturnValue(eventName);
+        const event = {
+            name: eventName,
+            dateTime: new Date(),
+            payload: null
+        };
         dispatcher.register(eventName, eventHandler1);
         dispatcher.register(eventName, eventHandler2);
         dispatcher.register('unknown-event', eventHandler3);
@@ -50,6 +53,30 @@ describe('EventDispatcher', () => {
         expect(eventHandler2.handle).toHaveBeenCalledTimes(1);
         expect(eventHandler2.handle).toHaveBeenCalledWith(event);
         expect(eventHandler3.handle).not.toHaveBeenCalled();
+    });
+    it('one event handler should not block other event handlers', async () => {
+        const eventName = 'USER_CREATED';
+        const eventHandler1 = (0, ts_jest_1.createMock)();
+        const eventHandler2 = (0, ts_jest_1.createMock)();
+        const eventHandler3 = (0, ts_jest_1.createMock)();
+        jest.spyOn(eventHandler2, 'handle').mockImplementationOnce(() => {
+            throw new Error('Error in event handler 2');
+        });
+        const event = {
+            name: eventName,
+            dateTime: new Date(),
+            payload: null
+        };
+        dispatcher.register(eventName, eventHandler1);
+        dispatcher.register(eventName, eventHandler2);
+        dispatcher.register(eventName, eventHandler3);
+        await dispatcher.dispatch(event);
+        expect(eventHandler1.handle).toHaveBeenCalledTimes(1);
+        expect(eventHandler1.handle).toHaveBeenCalledWith(event);
+        expect(eventHandler2.handle).toHaveBeenCalledTimes(1);
+        expect(eventHandler2.handle).toHaveBeenCalledWith(event);
+        expect(eventHandler3.handle).toHaveBeenCalledTimes(1);
+        expect(eventHandler3.handle).toHaveBeenCalledWith(event);
     });
     it('should remove an event handler', () => {
         const eventName = 'USER_CREATED';
