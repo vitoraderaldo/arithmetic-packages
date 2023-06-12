@@ -15,9 +15,19 @@ export class EventDispatcher implements EventDispatcherInterface {
     this.handlers.set(eventName, [...eventHandlers, eventHandler])
   }
 
-  dispatch(event: EventInterface<any>): void {
-    const eventHandlers = this.handlers.get(event.getName()) || []
-    eventHandlers.forEach(handler => handler.handle(event))
+  async dispatch(event: EventInterface<any>): Promise<void> {
+    const eventHandlers = this.handlers.get(event.name) || []
+    const promises = eventHandlers.map(handler => {
+      return new Promise((resolve, reject) => {
+        try {
+          const response = handler.handle(event)
+          resolve(response)
+        } catch (error) {
+          reject(error)
+        }
+      })
+    })
+    await Promise.allSettled(promises)
   }
 
   remove(eventName: string, eventHandler: EventHandlerInterface): void {

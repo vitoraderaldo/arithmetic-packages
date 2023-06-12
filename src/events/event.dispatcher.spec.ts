@@ -53,8 +53,12 @@ describe('EventDispatcher', () => {
     const eventHandler2 = createMock<EventHandlerInterface>()
     const eventHandler3 = createMock<EventHandlerInterface>()
 
-    const event = createMock<EventInterface<any>>()
-    event.getName.mockReturnValue(eventName)
+    const event: EventInterface<null> = {
+      name: eventName,
+      dateTime: new Date(),
+      payload: null
+    }
+    
 
     dispatcher.register(eventName, eventHandler1)
     dispatcher.register(eventName, eventHandler2)
@@ -68,6 +72,38 @@ describe('EventDispatcher', () => {
     expect(eventHandler2.handle).toHaveBeenCalledWith(event)
     expect(eventHandler3.handle).not.toHaveBeenCalled()
 
+  })
+
+  it('one event handler should not block other event handlers', async () => {
+    const eventName = 'USER_CREATED'
+
+    const eventHandler1 = createMock<EventHandlerInterface>()
+    const eventHandler2 = createMock<EventHandlerInterface>()
+    const eventHandler3 = createMock<EventHandlerInterface>()
+    
+    jest.spyOn(eventHandler2, 'handle').mockImplementationOnce(() => {
+      throw new Error('Error in event handler 2')
+    })
+
+    const event: EventInterface<null> = {
+      name: eventName,
+      dateTime: new Date(),
+      payload: null
+    }
+    
+
+    dispatcher.register(eventName, eventHandler1)
+    dispatcher.register(eventName, eventHandler2)
+    dispatcher.register(eventName, eventHandler3)
+
+    await dispatcher.dispatch(event)
+
+    expect(eventHandler1.handle).toHaveBeenCalledTimes(1)
+    expect(eventHandler1.handle).toHaveBeenCalledWith(event)
+    expect(eventHandler2.handle).toHaveBeenCalledTimes(1)
+    expect(eventHandler2.handle).toHaveBeenCalledWith(event)
+    expect(eventHandler3.handle).toHaveBeenCalledTimes(1)
+    expect(eventHandler3.handle).toHaveBeenCalledWith(event)
   })
 
   it('should remove an event handler', () => {
